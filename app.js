@@ -1,3 +1,4 @@
+require('dotenv').config()
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -12,7 +13,7 @@ var app = express();
 
 
 // Set up default mongoose connection
-const mongoDB = "mongodb+srv://emerson:express@locallibrary.h1fchlt.mongodb.net/?retryWrites=true&w=majority";
+const mongoDB = `${process.env.MONGODB_URI}`;
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Get the default connection
