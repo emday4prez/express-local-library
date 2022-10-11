@@ -107,23 +107,23 @@ exports.genre_create_post = [
 
 
 // Display Genre delete form on GET.
-exports.genre_delete_get = (req, res) => {
-    async.parallel(
+exports.genre_delete_get = function (req, res, next) {
+  async.parallel(
     {
-      genre(callback) {
+      genre: function (callback) {
         Genre.findById(req.params.id).exec(callback);
       },
-      genre_books(callback) {
+      genre_books: function (callback) {
         Book.find({ genre: req.params.id }).exec(callback);
       },
     },
-    (err, results) => {
+    function (err, results) {
       if (err) {
         return next(err);
       }
       if (results.genre == null) {
         // No results.
-        res.redirect("/catalog/genre");
+        res.redirect("/catalog/genres");
       }
       // Successful, so render.
       res.render("genre_delete", {
@@ -134,40 +134,40 @@ exports.genre_delete_get = (req, res) => {
     }
   );
 };
-
 // Handle Genre delete on POST.
-exports.genre_delete_post = (req, res, next) => {
+exports.genre_delete_post = function (req, res, next) {
   async.parallel(
     {
-      genre(callback) {
-        Genre.findById(req.body.genreid).exec(callback);
+      genre: function (callback) {
+        Genre.findById(req.params.id).exec(callback);
       },
-      genre_books(callback) {
-        Genre.find({ genre: req.body.genreid }).exec(callback);
+      genre_books: function (callback) {
+        Book.find({ genre: req.params.id }).exec(callback);
       },
     },
-    (err, results) => {
+    function (err, results) {
       if (err) {
         return next(err);
       }
       // Success
       if (results.genre_books.length > 0) {
-        // Author has books. Render in same way as for GET route.
+        // Genre has books. Render in same way as for GET route.
         res.render("genre_delete", {
           title: "Delete Genre",
           genre: results.genre,
           genre_books: results.genre_books,
         });
         return;
+      } else {
+        // Genre has no books. Delete object and redirect to the list of genres.
+        Genre.findByIdAndRemove(req.body.id, function deleteGenre(err) {
+          if (err) {
+            return next(err);
+          }
+          // Success - go to genres list.
+          res.redirect("/catalog/genres");
+        });
       }
-      // Author has no books. Delete object and redirect to the list of genre.
-      Genre.findByIdAndRemove(req.body.authorid, (err) => {
-        if (err) {
-          return next(err);
-        }
-        // Success - go to author list
-        res.redirect("/catalog/genre");
-      });
     }
   );
 };
